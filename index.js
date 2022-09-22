@@ -3,13 +3,15 @@ const morgan = require('morgan');
 
 const app = express();
 
-app.use(express.json());
+app.use( express.json() );
+app.use( express.static('build') );
 
 morgan.token('body', (req, resp) => {
     console.log(req.body);
     return(JSON.stringify(req.body))
 });
 
+//Logging format for incoming requests
 app.use(morgan( (tokens, request, response) => {
     return [
         tokens.method(request, response),
@@ -21,6 +23,7 @@ app.use(morgan( (tokens, request, response) => {
     ].join(' ');
 }));
 
+//Pre-mongo database
 let persons = [
     { 
       "id": 1,
@@ -44,12 +47,17 @@ let persons = [
     }
 ];
 
+
+//generate Id for new persons
 const generateId = () => Math.floor(Math.random()*1000+4);
 
+
+//get list of all people in the phonebook
 app.get('/api/persons', (request, response) => {
     response.json(persons);
 });
 
+//adding a person to the phonebook
 app.post('/api/persons', (request, response) => {
     const body = request.body;
 
@@ -79,6 +87,8 @@ app.post('/api/persons', (request, response) => {
     response.json(newPerson);
 });
 
+
+//get information regarding phonebook database
 app.get('/info', (request, response) => {
     const sentPage = `
         <p>Phonebook has info of ${persons.length} people</p>
@@ -87,6 +97,7 @@ app.get('/info', (request, response) => {
     response.send(sentPage);
 });
 
+//get information of a praticular person in the phonebook
 app.get('/api/persons/:id', (request, response) => {
     const id = request.params.id-0;
     const personToDisplay = persons.find( person => person.id ===id);
@@ -98,6 +109,7 @@ app.get('/api/persons/:id', (request, response) => {
     }
 });
 
+//delete a person from the phonebook
 app.delete('/api/persons/:id', (request, response) => {
     const id = request.params.id-0;
     const personToDelete = persons.find( person => person.id ===id);
@@ -110,6 +122,6 @@ app.delete('/api/persons/:id', (request, response) => {
     }
 })
 
-const PORT = 3001;
+const PORT = process.env.PORT||3001;
 app.listen(PORT);
 console.log(`App is listening for requests on port: ${PORT}`);
